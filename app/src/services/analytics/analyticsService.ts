@@ -7,6 +7,7 @@ import {
 } from '@react-native-firebase/analytics';
 import * as Updates from 'expo-updates';
 import { logger } from '../../utils/logger';
+import type { GateDecision } from '../versionGate/types';
 
 const SCOPE = 'analytics';
 
@@ -65,8 +66,8 @@ export const analyticsEvents = {
   notificationOpened(screen?: string): void {
     track('notification_opened', screen ? { screen } : undefined);
   },
-  /** Update-gate funnel (task 8 / M6). */
-  updatePromptShown(kind: 'optional' | 'forced', latest: string): void {
+  /** Update-gate funnel (task 8 / M6). `kind` is only ever Optional/Forced here. */
+  updatePromptShown(kind: GateDecision, latest: string): void {
     track('update_prompt_shown', { kind, latest_version: latest });
   },
   updatePromptAccepted(latest: string): void {

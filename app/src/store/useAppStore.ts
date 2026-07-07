@@ -1,38 +1,56 @@
 import { create } from 'zustand';
 import type { VersionConfig } from '../services/versionGate/types';
 
-/** Notification permission tri-state (task 3 handles all three explicitly). */
-export type NotificationPermission = 'granted' | 'denied' | 'undetermined';
+/** Notification permission tri-state (task 3 handles all three explicitly).
+ *  String values mirror expo-notifications' `PermissionStatus` so API results map 1:1. */
+export enum NotificationPermission {
+  Granted = 'granted',
+  Denied = 'denied',
+  Undetermined = 'undetermined',
+}
 
 /** Push-token acquisition lifecycle (drives the DevPanel status display). */
-export type TokenStatus = 'idle' | 'fetching' | 'ready' | 'unavailable' | 'error';
+export enum TokenStatus {
+  Idle = 'idle',
+  Fetching = 'fetching',
+  Ready = 'ready',
+  Unavailable = 'unavailable',
+  Error = 'error',
+}
 
 /** Best-effort registration with the admin panel's /api/register. */
-export type AdminRegistration = 'idle' | 'registering' | 'registered' | 'failed' | 'skipped';
+export enum AdminRegistration {
+  Idle = 'idle',
+  Registering = 'registering',
+  Registered = 'registered',
+  Failed = 'failed',
+  Skipped = 'skipped',
+}
 
 /**
  * Native update gate state machine (task 8 / M6). The download/install legs are
- * MOCKED per the spec — 'downloading' ticks fake progress; 'installing' →
- * 'installed' simulates the binary swap without a store round-trip.
+ * MOCKED per the spec — `Downloading` ticks fake progress; `Installing` →
+ * `Installed` simulates the binary swap without a store round-trip.
  *
- *   idle → checking → up-to-date | optional | forced | skipped | error
- *   optional/forced → downloading(progress) → ready → installing → installed
+ *   Idle → Checking → UpToDate | Optional | Forced | Skipped | Error
+ *   Optional/Forced → Downloading(progress) → Ready → Installing → Installed
  *
- * 'skipped' = no apiBaseUrl configured. 'error' = config fetch failed → FAIL-OPEN
- * (app stays usable; documented assumption).
+ * `Skipped` = no apiBaseUrl configured. `Error` = config fetch failed → FAIL-OPEN
+ * (app stays usable; documented assumption). String values kept stable for logs.
  */
-export type GatePhase =
-  | 'idle'
-  | 'checking'
-  | 'up-to-date'
-  | 'optional'
-  | 'forced'
-  | 'downloading'
-  | 'ready'
-  | 'installing'
-  | 'installed'
-  | 'skipped'
-  | 'error';
+export enum GatePhase {
+  Idle = 'idle',
+  Checking = 'checking',
+  UpToDate = 'up-to-date',
+  Optional = 'optional',
+  Forced = 'forced',
+  Downloading = 'downloading',
+  Ready = 'ready',
+  Installing = 'installing',
+  Installed = 'installed',
+  Skipped = 'skipped',
+  Error = 'error',
+}
 
 /**
  * Lean global store (decision D4: Zustand over Redux — the app's real global
@@ -61,11 +79,11 @@ interface AppState {
 
 export const useAppStore = create<AppState>((set) => ({
   pushToken: null,
-  permission: 'undetermined',
-  tokenStatus: 'idle',
+  permission: NotificationPermission.Undetermined,
+  tokenStatus: TokenStatus.Idle,
   tokenError: null,
-  adminRegistration: 'idle',
-  gatePhase: 'idle',
+  adminRegistration: AdminRegistration.Idle,
+  gatePhase: GatePhase.Idle,
   gateConfig: null,
   gateProgress: 0,
   setPushToken: (pushToken) => set({ pushToken }),

@@ -1,4 +1,4 @@
-import type { GateDecision, VersionConfig } from './types';
+import { GateDecision, type VersionConfig } from './types';
 
 /**
  * Pure version helpers (no native imports → unit-testable in isolation, like
@@ -50,10 +50,10 @@ export function evaluateGate(
       ? simulatedInstalledVersion
       : installedVersion;
 
-  if (compareVersions(effective, config.latestVersion) >= 0) return 'none';
+  if (compareVersions(effective, config.latestVersion) >= 0) return GateDecision.None;
   if (config.forceUpdate || compareVersions(effective, config.minSupportedVersion) < 0) {
-    return 'forced';
+    return GateDecision.Forced;
   }
-  if (dismissedVersion === config.latestVersion) return 'none';
-  return 'optional';
+  if (dismissedVersion === config.latestVersion) return GateDecision.None;
+  return GateDecision.Optional;
 }

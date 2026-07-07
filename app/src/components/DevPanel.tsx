@@ -14,7 +14,7 @@ import {
   getInstalledVersion,
   resetGatePersistence,
 } from '../services/versionGate/versionGateService';
-import { useAppStore } from '../store/useAppStore';
+import { NotificationPermission, useAppStore } from '../store/useAppStore';
 import { logger } from '../utils/logger';
 
 /**
@@ -118,7 +118,7 @@ function DevPanelBase() {
               <Text style={styles.buttonLabel}>Trigger native crash (kills app)</Text>
             </Pressable>
 
-            {permission === 'denied' && (
+            {permission === NotificationPermission.Denied && (
               <Pressable style={styles.button} onPress={() => void Linking.openSettings()}>
                 <Text style={styles.buttonLabel}>Open Settings to enable notifications</Text>
               </Pressable>

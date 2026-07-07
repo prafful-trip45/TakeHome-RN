@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useOtaUpdates } from '../services/updates/useOtaUpdates';
+import { OtaPhase } from '../services/updates/types';
 
 /**
  * Non-blocking consent prompt for a ready OTA (task 6 / M5). Renders null unless
@@ -14,7 +15,7 @@ function UpdateBannerImpl(): React.ReactElement | null {
   const { phase, reload } = useOtaUpdates();
   const insets = useSafeAreaInsets();
 
-  if (phase !== 'ready') return null;
+  if (phase !== OtaPhase.Ready) return null;
 
   return (
     <View style={[styles.banner, { top: insets.top + 8 }]}>

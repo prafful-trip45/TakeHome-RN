@@ -9,7 +9,7 @@ import {
   openStoreFallback,
   startMockDownload,
 } from '../services/versionGate/versionGateService';
-import { useAppStore } from '../store/useAppStore';
+import { GatePhase, useAppStore } from '../store/useAppStore';
 
 /**
  * Native/binary update gate UI (task 8 / M6). Renders null on the happy path.
@@ -33,16 +33,16 @@ function UpdateGateModalImpl(): React.ReactElement | null {
   const progress = useAppStore((s) => s.gateProgress);
 
   const visible =
-    phase === 'forced' ||
-    phase === 'optional' ||
-    phase === 'downloading' ||
-    phase === 'ready' ||
-    phase === 'installing' ||
-    phase === 'installed';
+    phase === GatePhase.Forced ||
+    phase === GatePhase.Optional ||
+    phase === GatePhase.Downloading ||
+    phase === GatePhase.Ready ||
+    phase === GatePhase.Installing ||
+    phase === GatePhase.Installed;
 
   if (!visible || !config) return null;
 
-  const dismissible = phase === 'optional';
+  const dismissible = phase === GatePhase.Optional;
 
   return (
     <Modal
@@ -53,14 +53,14 @@ function UpdateGateModalImpl(): React.ReactElement | null {
       onRequestClose={dismissible ? dismissOptionalUpdate : () => undefined}>
       <View style={styles.backdrop}>
         <View style={styles.card}>
-          {(phase === 'forced' || phase === 'optional') && (
+          {(phase === GatePhase.Forced || phase === GatePhase.Optional) && (
             <>
               <Text style={styles.heading}>
-                {phase === 'forced' ? 'Update required' : 'Update available'}
+                {phase === GatePhase.Forced ? 'Update required' : 'Update available'}
               </Text>
               <Text style={styles.body}>
                 {config.message ??
-                  (phase === 'forced'
+                  (phase === GatePhase.Forced
                     ? 'This version is no longer supported. Please update to continue.'
                     : 'A new version of SWAG is available.')}
               </Text>
@@ -81,7 +81,7 @@ function UpdateGateModalImpl(): React.ReactElement | null {
             </>
           )}
 
-          {phase === 'downloading' && (
+          {phase === GatePhase.Downloading && (
             <>
               <Text style={styles.heading}>Downloading update…</Text>
               <View style={styles.track}>
@@ -91,7 +91,7 @@ function UpdateGateModalImpl(): React.ReactElement | null {
             </>
           )}
 
-          {phase === 'ready' && (
+          {phase === GatePhase.Ready && (
             <>
               <Text style={styles.heading}>Update ready</Text>
               <Text style={styles.body}>v{config.latestVersion} has been downloaded.</Text>
@@ -101,14 +101,14 @@ function UpdateGateModalImpl(): React.ReactElement | null {
             </>
           )}
 
-          {phase === 'installing' && (
+          {phase === GatePhase.Installing && (
             <>
               <Text style={styles.heading}>Installing…</Text>
               <Text style={styles.body}>Applying v{config.latestVersion} (simulated)</Text>
             </>
           )}
 
-          {phase === 'installed' && (
+          {phase === GatePhase.Installed && (
             <>
               <Text style={styles.heading}>Up to date</Text>
               <Text style={styles.body}>

@@ -3,10 +3,10 @@ import * as Application from 'expo-application';
 import Constants from 'expo-constants';
 import { env } from '../../config/env';
 import { analyticsEvents } from '../analytics/analyticsService';
-import { useAppStore } from '../../store/useAppStore';
+import { GatePhase, useAppStore } from '../../store/useAppStore';
 import { logger } from '../../utils/logger';
 import { storage } from '../../utils/storage';
-import type { VersionConfig } from './types';
+import { GateDecision, type VersionConfig } from './types';
 import { evaluateGate, isVersionString } from './versionCompare';
 
 const SCOPE = 'versionGate';
@@ -17,8 +17,8 @@ const SCOPE = 'versionGate';
  * OTA ships JS bundles into the SAME binary via expo-updates; this gate handles a
  * NEW binary via a remotely-controlled config from the admin panel.
  *
- * WHAT IS MOCKED (spec-allowed): the download and install legs. 'downloading'
- * ticks fake progress; 'install' persists a simulated installed version (MMKV)
+ * WHAT IS MOCKED (spec-allowed): the download and install legs. `Downloading`
+ * ticks fake progress; `Installing` persists a simulated installed version (MMKV)
  * and shows success — no real store round-trip. Everything else (remote config,
  * comparison, forced/optional split, consent, persistence, fallback) is real.
  */
@@ -26,6 +26,17 @@ const SCOPE = 'versionGate';
 // ── Persistence (MMKV, synchronous) ──────────────────────────────────────────
 const KEY_DISMISSED = 'versionGate.dismissedVersion';
 const KEY_SIMULATED = 'versionGate.simulatedInstalledVersion';
+
+/**
+ * Pure decision → the store phase to show. Explicit map because `GateDecision`
+ * and `GatePhase` are distinct (nominal) enums that happen to share the Optional
+ * / Forced string values — so a decision can't be assigned to a phase directly.
+ */
+const DECISION_TO_PHASE: Record<GateDecision, GatePhase> = {
+  [GateDecision.None]: GatePhase.UpToDate,
+  [GateDecision.Optional]: GatePhase.Optional,
+  [GateDecision.Forced]: GatePhase.Forced,
+};
 
 /** Installed binary version: real native value first (verified SDK 57 API,
  *  null on web), config version as dev/web fallback. */
@@ -79,7 +90,12 @@ async function fetchVersionConfig(): Promise<VersionConfig | null> {
 let checkInFlight = false;
 
 /** Phases during which a re-check must NOT stomp the UI (user mid-flow). */
-const BUSY_PHASES = new Set(['downloading', 'ready', 'installing', 'installed']);
+const BUSY_PHASES = new Set<GatePhase>([
+  GatePhase.Downloading,
+  GatePhase.Ready,
+  GatePhase.Installing,
+  GatePhase.Installed,
+]);
 
 /**
  * The launch/resume check: fetch remote config → pure evaluate → store phase.
@@ -91,16 +107,16 @@ export async function checkVersionGate(): Promise<void> {
   checkInFlight = true;
   try {
     if (!env.apiBaseUrl) {
-      store.setGatePhase('skipped');
+      store.setGatePhase(GatePhase.Skipped);
       logger.info(SCOPE, 'no apiBaseUrl configured — gate skipped');
       return;
     }
-    store.setGatePhase('checking');
+    store.setGatePhase(GatePhase.Checking);
     const config = await fetchVersionConfig();
     if (!config) {
       // Unreachable or malformed → fail-open.
       store.setGateConfig(null);
-      store.setGatePhase('error');
+      store.setGatePhase(GatePhase.Error);
       return;
     }
     store.setGateConfig(config);
@@ -110,9 +126,9 @@ export async function checkVersionGate(): Promise<void> {
       storage.getString(KEY_SIMULATED) ?? null,
       storage.getString(KEY_DISMISSED) ?? null,
     );
-    store.setGatePhase(decision === 'none' ? 'up-to-date' : decision);
+    store.setGatePhase(DECISION_TO_PHASE[decision]);
     // Task 10 (D5): update-funnel product event — Firebase only, never Sentry.
-    if (decision === 'optional' || decision === 'forced') {
+    if (decision === GateDecision.Optional || decision === GateDecision.Forced) {
       analyticsEvents.updatePromptShown(decision, config.latestVersion);
     }
     logger.info(SCOPE, `decision=${decision}`, {
@@ -136,13 +152,13 @@ function clearProgressTimer(): void {
   }
 }
 
-/** Simulated download: ~3s of fake progress, then 'ready'. Idempotent. */
+/** Simulated download: ~3s of fake progress, then Ready. Idempotent. */
 export function startMockDownload(): void {
   const store = useAppStore.getState();
-  if (store.gatePhase !== 'optional' && store.gatePhase !== 'forced') return;
+  if (store.gatePhase !== GatePhase.Optional && store.gatePhase !== GatePhase.Forced) return;
   clearProgressTimer();
   store.setGateProgress(0);
-  store.setGatePhase('downloading');
+  store.setGatePhase(GatePhase.Downloading);
   analyticsEvents.updatePromptAccepted(store.gateConfig?.latestVersion ?? 'unknown');
   progressTimer = setInterval(() => {
     const { gateProgress, setGateProgress, setGatePhase } = useAppStore.getState();
@@ -150,7 +166,7 @@ export function startMockDownload(): void {
     setGateProgress(next);
     if (next >= 1) {
       clearProgressTimer();
-      setGatePhase('ready');
+      setGatePhase(GatePhase.Ready);
     }
   }, 120);
 }
@@ -162,13 +178,13 @@ export function startMockDownload(): void {
  */
 export function installMockUpdate(): void {
   const store = useAppStore.getState();
-  if (store.gatePhase !== 'ready' || !store.gateConfig) return;
-  store.setGatePhase('installing');
+  if (store.gatePhase !== GatePhase.Ready || !store.gateConfig) return;
+  store.setGatePhase(GatePhase.Installing);
   const { latestVersion } = store.gateConfig;
   setTimeout(() => {
     storage.set(KEY_SIMULATED, latestVersion);
     storage.remove(KEY_DISMISSED); // a fresh "binary" resets old dismissals
-    useAppStore.getState().setGatePhase('installed');
+    useAppStore.getState().setGatePhase(GatePhase.Installed);
     logger.info(SCOPE, `simulated install of v${latestVersion} complete`);
   }, 800);
 }
@@ -177,9 +193,9 @@ export function installMockUpdate(): void {
  *  a future, newer version prompts again. Forced updates never call this. */
 export function dismissOptionalUpdate(): void {
   const store = useAppStore.getState();
-  if (store.gatePhase !== 'optional' || !store.gateConfig) return;
+  if (store.gatePhase !== GatePhase.Optional || !store.gateConfig) return;
   storage.set(KEY_DISMISSED, store.gateConfig.latestVersion);
-  store.setGatePhase('up-to-date');
+  store.setGatePhase(GatePhase.UpToDate);
   analyticsEvents.updatePromptDismissed(store.gateConfig.latestVersion);
   logger.info(SCOPE, `optional update v${store.gateConfig.latestVersion} dismissed`);
 }
@@ -187,7 +203,7 @@ export function dismissOptionalUpdate(): void {
 /** Post-install acknowledgement: close the modal. */
 export function acknowledgeInstalled(): void {
   const store = useAppStore.getState();
-  if (store.gatePhase === 'installed') store.setGatePhase('up-to-date');
+  if (store.gatePhase === GatePhase.Installed) store.setGatePhase(GatePhase.UpToDate);
 }
 
 /**
@@ -211,6 +227,6 @@ export function resetGatePersistence(): void {
   const store = useAppStore.getState();
   clearProgressTimer();
   store.setGateProgress(0);
-  store.setGatePhase('idle');
+  store.setGatePhase(GatePhase.Idle);
   logger.info(SCOPE, 'persisted gate state reset');
 }

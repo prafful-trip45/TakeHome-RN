@@ -3,7 +3,7 @@ import { AppState } from 'react-native';
 import { useUpdates } from 'expo-updates';
 import { isOtaActive } from './otaConfig';
 import { applyUpdate, checkAndDownload } from './otaUpdateService';
-import type { OtaPhase } from './types';
+import { OtaPhase } from './types';
 
 /**
  * Owns OTA orchestration (task 6 / M5): one launch check + a re-check on each
@@ -47,14 +47,14 @@ export function useOtaUpdates(): {
   }, [runCheck]);
 
   const phase: OtaPhase = isUpdatePending
-    ? 'ready'
+    ? OtaPhase.Ready
     : isDownloading
-      ? 'downloading'
+      ? OtaPhase.Downloading
       : isChecking
-        ? 'checking'
+        ? OtaPhase.Checking
         : checkError || downloadError
-          ? 'error'
-          : 'idle';
+          ? OtaPhase.Error
+          : OtaPhase.Idle;
 
   return { phase, downloadProgress, reload: applyUpdate };
 }

@@ -6,7 +6,7 @@ import { env } from '../../config/env';
 import { analyticsEvents } from '../analytics/analyticsService';
 import { useAppStore } from '../../store/useAppStore';
 import { logger } from '../../utils/logger';
-import type { AdminRegistration, NotificationPermission } from '../../store/useAppStore';
+import { AdminRegistration, NotificationPermission, TokenStatus } from '../../store/useAppStore';
 
 /**
  * Push-notification service (task 3). Plain-function module that writes results
@@ -44,9 +44,9 @@ export async function ensureAndroidChannel(): Promise<void> {
 }
 
 function toPermission(status: Notifications.PermissionStatus): NotificationPermission {
-  if (status === 'granted') return 'granted';
-  if (status === 'denied') return 'denied';
-  return 'undetermined';
+  if (status === Notifications.PermissionStatus.GRANTED) return NotificationPermission.Granted;
+  if (status === Notifications.PermissionStatus.DENIED) return NotificationPermission.Denied;
+  return NotificationPermission.Undetermined;
 }
 
 export async function getPermission(): Promise<NotificationPermission> {
@@ -76,7 +76,7 @@ async function fetchExpoPushToken(): Promise<string> {
 async function registerTokenWithAdmin(token: string): Promise<AdminRegistration> {
   if (!env.apiBaseUrl) {
     logger.info('notifications', 'no apiBaseUrl configured — skipping admin registration');
-    return 'skipped';
+    return AdminRegistration.Skipped;
   }
   try {
     const controller = new AbortController();
@@ -95,12 +95,12 @@ async function registerTokenWithAdmin(token: string): Promise<AdminRegistration>
     clearTimeout(timeout);
     if (!res.ok) {
       logger.warn('notifications', `admin registration failed (${res.status})`);
-      return 'failed';
+      return AdminRegistration.Failed;
     }
-    return 'registered';
+    return AdminRegistration.Registered;
   } catch (err) {
     logger.warn('notifications', 'admin registration unreachable', err);
-    return 'failed';
+    return AdminRegistration.Failed;
   }
 }
 
@@ -136,31 +136,31 @@ export async function syncNotifications(): Promise<void> {
     await ensureAndroidChannel();
 
     let permission = await getPermission();
-    if (permission === 'undetermined') {
+    if (permission === NotificationPermission.Undetermined) {
       permission = await requestPermission();
     }
     store.setPermission(permission);
 
-    if (permission !== 'granted') {
+    if (permission !== NotificationPermission.Granted) {
       // Graceful denied fallback: app fully usable, token simply unavailable.
       store.setPushToken(null);
-      store.setTokenStatus('unavailable');
-      store.setAdminRegistration('skipped');
+      store.setTokenStatus(TokenStatus.Unavailable);
+      store.setAdminRegistration(AdminRegistration.Skipped);
       logger.info('notifications', `permission ${permission} — push disabled, app continues`);
       return;
     }
 
-    store.setTokenStatus('fetching');
+    store.setTokenStatus(TokenStatus.Fetching);
     const token = await fetchExpoPushToken();
     store.setPushToken(token);
-    store.setTokenStatus('ready');
+    store.setTokenStatus(TokenStatus.Ready);
     logger.info('notifications', 'expo push token acquired');
 
-    store.setAdminRegistration('registering');
+    store.setAdminRegistration(AdminRegistration.Registering);
     store.setAdminRegistration(await registerTokenWithAdmin(token));
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    store.setTokenStatus('error', message);
+    store.setTokenStatus(TokenStatus.Error, message);
     logger.warn('notifications', 'token sync failed', err);
   } finally {
     syncInFlight = false;

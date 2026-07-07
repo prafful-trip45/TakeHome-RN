@@ -19,4 +19,8 @@ export interface VersionConfig {
 }
 
 /** Pure gate outcome, before UX concerns (dismissals etc. are inputs, not state). */
-export type GateDecision = 'none' | 'optional' | 'forced';
+export enum GateDecision {
+  None = 'none',
+  Optional = 'optional',
+  Forced = 'forced',
+}
