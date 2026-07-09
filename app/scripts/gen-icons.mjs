@@ -74,7 +74,11 @@ async function main() {
     .toFile(out('notification-icon.png'));
 
   // Favicon.
-  await sharp(SRC).flatten({ background: '#000000' }).resize(48, 48).png().toFile(out('favicon.png'));
+  await sharp(SRC)
+    .flatten({ background: '#000000' })
+    .resize(48, 48)
+    .png()
+    .toFile(out('favicon.png'));
 
   console.log('icons generated from', SRC);
 }

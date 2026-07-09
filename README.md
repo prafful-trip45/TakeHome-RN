@@ -70,6 +70,8 @@ permissions, icons, splash).
 | `npm run prebuild:android` | `expo prebuild --clean -p android` | regenerate native project from `app.config.ts` |
 | `npm run rebuild:android` | prebuild + run:android:device | **after any native-config change** |
 | `npm run icons:gen` | `node scripts/gen-icons.mjs` | regenerate all icon variants from the SWAG logo |
+| `npm run lint` · `lint:fix` | `eslint .` | lint (`eslint-config-expo`, ESLint 9 flat config) |
+| `npm run format` · `format:check` | `prettier --write .` | format (single-quote, 100-col — matches admin) |
 
 ### Admin
 

@@ -40,7 +40,8 @@ export function NavigationComponent() {
         flushPendingNavigation();
         splashController.markNavigationReady();
         trackCurrentRoute();
-      }}>
+      }}
+    >
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name={Routes.Tabs} component={BottomTabs} />
       </Stack.Navigator>

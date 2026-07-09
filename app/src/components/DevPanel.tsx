@@ -61,7 +61,8 @@ function DevPanelBase() {
         accessibilityRole="button"
         accessibilityLabel="Open developer panel"
         onPress={() => setOpen(true)}
-        style={[styles.fab, { top: insets.top + 8 }]}>
+        style={[styles.fab, { top: insets.top + 8 }]}
+      >
         <Text style={styles.fabLabel}>DevPanel</Text>
       </Pressable>
 
@@ -101,7 +102,8 @@ function DevPanelBase() {
               onPress={() => {
                 resetGatePersistence();
                 void checkVersionGate();
-              }}>
+              }}
+            >
               <Text style={styles.buttonLabel}>Reset gate persistence (demo)</Text>
             </Pressable>
 
@@ -120,7 +122,8 @@ function DevPanelBase() {
                 // Sentry capture path (in dev the RedBox intercepts first —
                 // verify on a release/preview build).
                 throw new Error('SWAG unhandled JS error — DevPanel');
-              }}>
+              }}
+            >
               <Text style={styles.buttonLabel}>Throw unhandled JS error</Text>
             </Pressable>
             <Pressable style={styles.button} onPress={triggerNativeCrash}>
@@ -132,7 +135,10 @@ function DevPanelBase() {
                 <Text style={styles.buttonLabel}>Open Settings to enable notifications</Text>
               </Pressable>
             )}
-            <Pressable style={styles.button} onPress={() => void syncNotifications({ manual: true })}>
+            <Pressable
+              style={styles.button}
+              onPress={() => void syncNotifications({ manual: true })}
+            >
               <Text style={styles.buttonLabel}>Retry sync</Text>
             </Pressable>
             <Pressable style={[styles.button, styles.closeButton]} onPress={() => setOpen(false)}>

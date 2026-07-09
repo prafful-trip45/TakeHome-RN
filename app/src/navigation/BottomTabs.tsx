@@ -13,7 +13,8 @@ export function BottomTabs() {
   return (
     <Tab.Navigator
       screenOptions={{ headerShown: false }}
-      tabBar={(props) => <FloatingTabBar {...props} />}>
+      tabBar={(props) => <FloatingTabBar {...props} />}
+    >
       <Tab.Screen name={Routes.Screen1} component={Screen1} options={{ title: 'Screen 1' }} />
       <Tab.Screen name={Routes.Screen2} component={Screen2} options={{ title: 'Screen 2' }} />
       <Tab.Screen name={Routes.Screen3} component={Screen3} options={{ title: 'Screen 3' }} />

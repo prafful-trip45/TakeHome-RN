@@ -18,8 +18,14 @@ export function useOtaUpdates(): {
   downloadProgress: number | undefined;
   reload: () => Promise<void>;
 } {
-  const { isChecking, isDownloading, isUpdatePending, downloadProgress, checkError, downloadError } =
-    useUpdates();
+  const {
+    isChecking,
+    isDownloading,
+    isUpdatePending,
+    downloadProgress,
+    checkError,
+    downloadError,
+  } = useUpdates();
   const inFlight = useRef(false);
 
   const runCheck = useCallback(async () => {

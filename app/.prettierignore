@@ -1,0 +1,8 @@
+# Generated / native / vendored — not ours to format
+android/
+ios/
+.expo/
+dist/
+node_modules/
+package-lock.json
+assets/
