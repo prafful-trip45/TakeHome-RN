@@ -121,6 +121,11 @@ export function reportNotificationOpened(screen?: unknown): void {
 }
 
 let syncInFlight = false;
+// Ask the OS at most ONCE automatically per app launch. After a denial Android
+// keeps canAskAgain=true, so without this we'd re-prompt on every sync (nagging).
+// A fresh launch resets this; DevPanel "Retry" passes { manual: true } to re-ask
+// on an explicit user action.
+let autoPromptedThisSession = false;
 
 /**
  * The full startup/retry flow: channel → permission (granted/denied/undetermined
@@ -128,15 +133,26 @@ let syncInFlight = false;
  * a denied permission is a terminal-but-graceful state (UI shows fallback, no
  * crash, re-runnable after the user changes Settings).
  */
-export async function syncNotifications(): Promise<void> {
+export async function syncNotifications({ manual = false }: { manual?: boolean } = {}): Promise<void> {
   if (syncInFlight) return;
   syncInFlight = true;
   const store = useAppStore.getState();
   try {
     await ensureAndroidChannel();
 
-    let permission = await getPermission();
-    if (permission === NotificationPermission.Undetermined) {
+    // Android reports `denied` (with canAskAgain=true) BEFORE the first prompt —
+    // it does NOT use `undetermined` like iOS — so gate on canAskAgain, not status.
+    // And prompt at most once automatically per launch: after a denial canAskAgain
+    // stays true, so auto-re-asking on every sync would nag. `manual` (DevPanel
+    // Retry) bypasses the session guard for an explicit user re-request.
+    const current = await Notifications.getPermissionsAsync();
+    let permission = toPermission(current.status);
+    const mayPrompt =
+      permission !== NotificationPermission.Granted &&
+      current.canAskAgain &&
+      (manual || !autoPromptedThisSession);
+    if (mayPrompt) {
+      autoPromptedThisSession = true;
       permission = await requestPermission();
     }
     store.setPermission(permission);
