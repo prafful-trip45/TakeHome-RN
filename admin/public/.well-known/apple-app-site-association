@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["TEAMID.gg.swag.assignment"],
+        "components": [
+          {
+            "/": "/screen/*",
+            "comment": "Universal link into a specific SWAG screen (Screen 1/2/3)."
+          }
+        ]
+      }
+    ]
+  }
+}

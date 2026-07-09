@@ -1,0 +1,16 @@
+# Internal planning / architecture / solution docs — not part of the submission
+tech/
+
+# AI-assistant / Claude Code artifacts — never commit
+.claude/
+CLAUDE.md
+AGENTS.md
+
+# All Markdown docs (internal notes) — keep out of the submission
+*.md
+
+# Assignment spec (keep the repo clean of the source PDF)
+SWAG_React_Native_Assignment.pdf
+
+# macOS
+.DS_Store
