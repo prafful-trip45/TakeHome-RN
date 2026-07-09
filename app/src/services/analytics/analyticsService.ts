@@ -4,7 +4,9 @@ import {
   logEvent,
   logScreenView,
   setAnalyticsCollectionEnabled,
+  setUserProperties,
 } from '@react-native-firebase/analytics';
+import { Platform } from 'react-native';
 import * as Updates from 'expo-updates';
 import { logger } from '../../utils/logger';
 import type { GateDecision } from '../versionGate/types';
@@ -30,15 +32,33 @@ export function initAnalytics(): void {
     analytics = getAnalytics(getApp());
     void setAnalyticsCollectionEnabled(analytics, true);
     logger.info(SCOPE, 'initialized');
-    // OTA visibility: when this launch is running an EAS Update bundle (not the
-    // binary-embedded one), record that the OTA actually applied (task 6 demo).
-    if (Updates.isEmbeddedLaunch === false) {
+    setInitialUserProperties();
+    // OTA visibility: record ota_applied ONLY on a real build running a downloaded
+    // EAS Update (not the embedded bundle). `isEnabled` gates out dev-clients, where
+    // updates are inert yet `isEmbeddedLaunch` is false — which would false-fire this.
+    if (Updates.isEnabled && Updates.isEmbeddedLaunch === false) {
       track('ota_applied', { update_id: Updates.updateId ?? 'unknown' });
     }
   } catch (err) {
     analytics = null;
     logger.info(SCOPE, 'Firebase unavailable (no native config) — analytics disabled', err);
   }
+}
+
+/**
+ * Non-PII user properties for segmentation — shown in DebugView "User Properties"
+ * and associated with every event (incl. screen_view). All values are strings,
+ * ≤36 chars, non-PII (spec).
+ */
+function setInitialUserProperties(): void {
+  if (!analytics) return;
+  const hermes = !!(global as { HermesInternal?: unknown }).HermesInternal;
+  void setUserProperties(analytics, {
+    platform: Platform.OS,
+    js_engine: hermes ? 'hermes' : 'jsc',
+    runtime_version: Updates.runtimeVersion ?? 'unknown',
+    ota_channel: Updates.channel ?? (Updates.isEnabled ? 'default' : 'dev'),
+  }).catch((err) => logger.debug(SCOPE, 'setUserProperties failed', err));
 }
 
 export function isAnalyticsEnabled(): boolean {
