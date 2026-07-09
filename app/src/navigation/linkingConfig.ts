@@ -10,13 +10,17 @@ import type { RootStackParamList } from './routes';
 
 /**
  * Deep-link prefixes: the custom scheme (swagassignment://), the dev/exp scheme
- * from `Linking.createURL`, and the https universal-link host (swap for the real
- * Vercel domain once the admin panel is deployed).
+ * from `Linking.createURL`, and the https App Links host. The host is env-driven
+ * (EXPO_PUBLIC_APP_LINK_HOST, inlined by Metro) so it stays in sync with the
+ * intentFilters / associatedDomains in app.config.ts — must match the deployed
+ * admin domain that serves /.well-known/*.
  */
+const appLinkHost = process.env.EXPO_PUBLIC_APP_LINK_HOST ?? 'take-home-rn.vercel.app';
+
 export const linkPrefixes: string[] = [
   Linking.createURL('/'),
   'swagassignment://',
-  'https://swag-rn-assignment.vercel.app',
+  `https://${appLinkHost}`,
 ];
 
 /** `screen/N` (+ optional `?highlight=true`, the deep-link-params bonus). */

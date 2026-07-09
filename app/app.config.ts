@@ -22,7 +22,7 @@ const firebasePlugins: (string | [string, Record<string, unknown>])[] = firebase
 // deployed domain that serves /.well-known/assetlinks.json + /apple-app-site-association
 // (both stubbed in admin/public). Env-overridable so the real Vercel domain can be
 // set without a code change; keep in sync with linkPrefixes in linkingConfig.ts.
-const appLinkHost = process.env.EXPO_PUBLIC_APP_LINK_HOST ?? 'swag-rn-assignment.vercel.app';
+const appLinkHost = process.env.EXPO_PUBLIC_APP_LINK_HOST ?? 'take-home-rn.vercel.app';
 
 /**
  * Dynamic Expo config (single source of truth — replaces app.json).
