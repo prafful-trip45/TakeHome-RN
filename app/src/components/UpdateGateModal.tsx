@@ -50,7 +50,8 @@ function UpdateGateModalImpl(): React.ReactElement | null {
       transparent
       animationType="fade"
       // Forced flow: Android back is swallowed; optional flow: back == "Not now".
-      onRequestClose={dismissible ? dismissOptionalUpdate : () => undefined}>
+      onRequestClose={dismissible ? dismissOptionalUpdate : () => undefined}
+    >
       <View style={styles.backdrop}>
         <View style={styles.card}>
           {(phase === GatePhase.Forced || phase === GatePhase.Optional) && (

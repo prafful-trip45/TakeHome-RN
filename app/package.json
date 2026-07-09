@@ -34,6 +34,10 @@
   "devDependencies": {
     "@types/node": "^26.1.0",
     "@types/react": "~19.2.2",
+    "eslint": "^9.39.4",
+    "eslint-config-expo": "^57.0.0",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.9.4",
     "sharp": "^0.35.3",
     "typescript": "~6.0.3"
   },
@@ -42,7 +46,14 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "icons:gen": "node scripts/gen-icons.mjs"
+    "icons:gen": "node scripts/gen-icons.mjs",
+    "prebuild:android": "expo prebuild --clean -p android",
+    "android:device": "expo run:android --device",
+    "rebuild:android": "expo prebuild --clean -p android && expo run:android --device",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "private": true
 }

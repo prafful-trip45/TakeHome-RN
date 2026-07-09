@@ -25,8 +25,10 @@ export type RootStackParamList = {
 export type DeepLinkScreen = keyof TabParamList;
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace ReactNavigation {
+    // React Navigation's global augmentation needs an empty interface for
+    // declaration merging — the no-empty-object-type rule doesn't apply here.
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     interface RootParamList extends RootStackParamList {}
   }
 }

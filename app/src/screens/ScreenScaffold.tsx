@@ -53,7 +53,9 @@ function ScreenScaffoldBase({ title, statusBarColor, statusBarStyle }: ScreenSca
 
   return (
     <View style={[styles.container, { backgroundColor: SHARED_BACKGROUND }]}>
-      <View style={[styles.statusBarBand, { height: insets.top, backgroundColor: statusBarColor }]} />
+      <View
+        style={[styles.statusBarBand, { height: insets.top, backgroundColor: statusBarColor }]}
+      />
       <View style={styles.center}>
         <Text style={[styles.title, { color: SHARED_TEXT }, highlight && styles.titleHighlighted]}>
           {highlight ? `${title} ✨` : title}

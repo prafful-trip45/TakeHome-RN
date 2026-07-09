@@ -4,9 +4,13 @@ import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { env } from '../../config/env';
 import { analyticsEvents } from '../analytics/analyticsService';
-import { useAppStore } from '../../store/useAppStore';
+import {
+  useAppStore,
+  AdminRegistration,
+  NotificationPermission,
+  TokenStatus,
+} from '../../store/useAppStore';
 import { logger } from '../../utils/logger';
-import { AdminRegistration, NotificationPermission, TokenStatus } from '../../store/useAppStore';
 
 /**
  * Push-notification service (task 3). Plain-function module that writes results
@@ -133,7 +137,9 @@ let autoPromptedThisSession = false;
  * a denied permission is a terminal-but-graceful state (UI shows fallback, no
  * crash, re-runnable after the user changes Settings).
  */
-export async function syncNotifications({ manual = false }: { manual?: boolean } = {}): Promise<void> {
+export async function syncNotifications({
+  manual = false,
+}: { manual?: boolean } = {}): Promise<void> {
   if (syncInFlight) return;
   syncInFlight = true;
   const store = useAppStore.getState();

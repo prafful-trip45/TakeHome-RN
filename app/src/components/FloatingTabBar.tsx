@@ -37,7 +37,8 @@ function FloatingTabBarBase({ state, descriptors, navigation }: BottomTabBarProp
               accessibilityRole="button"
               accessibilityState={{ selected: isFocused }}
               accessibilityLabel={label}
-              style={[styles.item, isFocused && styles.itemActive]}>
+              style={[styles.item, isFocused && styles.itemActive]}
+            >
               <Text style={[styles.label, isFocused && styles.labelActive]}>{label}</Text>
             </Pressable>
           );
