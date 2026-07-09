@@ -1,9 +1,10 @@
 import { memo, useCallback } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { setStatusBarStyle } from 'expo-status-bar';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { StatusBarStyle } from 'expo-status-bar';
+import type { TabScreenParams } from '../navigation/routes';
 
 /**
  * Shared body background + text for ALL three screens, so the *status bar* is the
@@ -33,9 +34,16 @@ interface ScreenScaffoldProps {
  * no settable background), so we paint the top inset ourselves to give each screen
  * a distinct, verifiable status bar color while the body stays identical. `barStyle`
  * flips with it so the OS icons/clock stay legible against each band.
+ *
+ * Deep-link params bonus (task 4): a `?highlight=true` link (or notification
+ * `data.highlight`) arrives as `route.params.highlight` — the screen reacts by
+ * marking its title, proving the param is carried end-to-end and consumed.
  */
 function ScreenScaffoldBase({ title, statusBarColor, statusBarStyle }: ScreenScaffoldProps) {
   const insets = useSafeAreaInsets();
+  // `useRoute` here resolves to the enclosing tab screen (Screen1/2/3), so its
+  // params carry the parsed `highlight` flag from the deep link / notification.
+  const highlight = (useRoute().params as TabScreenParams)?.highlight ?? false;
 
   useFocusEffect(
     useCallback(() => {
@@ -47,7 +55,9 @@ function ScreenScaffoldBase({ title, statusBarColor, statusBarStyle }: ScreenSca
     <View style={[styles.container, { backgroundColor: SHARED_BACKGROUND }]}>
       <View style={[styles.statusBarBand, { height: insets.top, backgroundColor: statusBarColor }]} />
       <View style={styles.center}>
-        <Text style={[styles.title, { color: SHARED_TEXT }]}>{title}</Text>
+        <Text style={[styles.title, { color: SHARED_TEXT }, highlight && styles.titleHighlighted]}>
+          {highlight ? `${title} ✨` : title}
+        </Text>
       </View>
     </View>
   );
@@ -75,5 +85,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
+  },
+  // Deep-link highlight reaction: an unmistakable pill behind the title.
+  titleHighlighted: {
+    backgroundColor: 'rgba(99,102,241,0.35)',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 10,
+    overflow: 'hidden',
   },
 });

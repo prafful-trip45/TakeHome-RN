@@ -66,6 +66,11 @@ function DevPanelBase() {
           <View style={styles.card}>
             <Text style={styles.heading}>Diagnostics</Text>
 
+            <Text style={styles.label}>JS engine</Text>
+            <Text style={styles.value}>
+              {(global as { HermesInternal?: unknown }).HermesInternal ? 'Hermes ✓' : 'JSC'}
+            </Text>
+
             <Text style={styles.label}>Notification permission</Text>
             <Text style={styles.value}>{permission}</Text>
 

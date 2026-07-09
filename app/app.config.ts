@@ -18,6 +18,12 @@ const firebasePlugins: (string | [string, Record<string, unknown>])[] = firebase
   ? ['@react-native-firebase/app', ['expo-build-properties', { ios: { useFrameworks: 'static' } }]]
   : [];
 
+// Task 4: https App Links (Android) / Universal Links (iOS) host. MUST match the
+// deployed domain that serves /.well-known/assetlinks.json + /apple-app-site-association
+// (both stubbed in admin/public). Env-overridable so the real Vercel domain can be
+// set without a code change; keep in sync with linkPrefixes in linkingConfig.ts.
+const appLinkHost = process.env.EXPO_PUBLIC_APP_LINK_HOST ?? 'swag-rn-assignment.vercel.app';
+
 /**
  * Dynamic Expo config (single source of truth — replaces app.json).
  * Env/secrets flow in via `extra` and are read through src/config/env.ts.
@@ -40,11 +46,28 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'gg.swag.assignment',
+    // Task 4: Universal Links. Verification is Apple-account-gated (needs the real
+    // TEAMID in apple-app-site-association + Associated Domains entitlement) — see
+    // DECISIONS O2/O3. Harmless to declare on a simulator build.
+    associatedDomains: [`applinks:${appLinkHost}`],
     ...(hasGoogleServicesIos ? { googleServicesFile: iosGoogleServices } : {}),
   },
   android: {
     package: 'gg.swag.assignment',
     ...(hasGoogleServicesAndroid ? { googleServicesFile: androidGoogleServices } : {}),
+    // Task 4: Android App Links for https://<host>/screen/N. `autoVerify` makes
+    // Android verify against /.well-known/assetlinks.json (fill its SHA-256 from
+    // `eas credentials`). The custom swagassignment:// filter is auto-generated
+    // from `scheme` above — only the https filter is declared here. These are what
+    // populate the app's "Open by default" links once verified.
+    intentFilters: [
+      {
+        action: 'VIEW',
+        autoVerify: true,
+        data: [{ scheme: 'https', host: appLinkHost, pathPrefix: '/screen' }],
+        category: ['BROWSABLE', 'DEFAULT'],
+      },
+    ],
     adaptiveIcon: {
       foregroundImage: './assets/android-icon-foreground.png',
       backgroundImage: './assets/android-icon-background.png',
