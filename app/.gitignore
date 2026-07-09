@@ -43,6 +43,7 @@ yarn-error.*
 # Firebase credential files (task 10) — provided via EAS file env vars, never committed
 google-services.json
 GoogleService-Info.plist
+service-account.json
 
 # local env (EXPO_PUBLIC_* values incl. Sentry DSN)
 .env
