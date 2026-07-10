@@ -6,12 +6,11 @@ import { applyUpdate, checkAndDownload } from './otaUpdateService';
 import { OtaPhase } from './types';
 
 /**
- * Owns OTA orchestration (task 6 / M5): one launch check + a re-check on each
- * resume, with all state observed through `useUpdates()` — SDK 57's single
- * observation API (the event-listener API was removed). A ref guards against
- * overlapping checks; the lone AppState subscription is cleaned up on unmount
- * (no leaks / duplicate handlers). Mounted post-render (see UpdateBanner) so the
- * launch check stays OFF the cold-start critical path.
+ * OTA orchestration: one launch check plus a re-check on each resume. All state
+ * is observed via `useUpdates()`, SDK 57's only observation API (the
+ * event-listener API was removed). A ref guards against overlapping checks; the
+ * AppState subscription is cleaned up on unmount. Mounted post-render (see
+ * UpdateBanner) to keep the launch check off the cold-start critical path.
  */
 export function useOtaUpdates(): {
   phase: OtaPhase;
@@ -38,13 +37,13 @@ export function useOtaUpdates(): {
     }
   }, []);
 
-  // Launch check — fires on mount (after first render), non-blocking.
+  // Launch check: fires on mount after first render, non-blocking.
   useEffect(() => {
     void runCheck();
   }, [runCheck]);
 
-  // Resume check — a single subscription, removed on cleanup. AppState only emits
-  // on transitions, so this never double-fires with the mount check on cold start.
+  // Resume check. AppState only emits on transitions, so this never double-fires
+  // with the mount check on cold start.
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
       if (state === 'active') void runCheck();

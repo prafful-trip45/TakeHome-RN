@@ -4,9 +4,9 @@ import Constants from 'expo-constants';
  *  `Constants.expoConfig?.extra?.x` reads) so config access stays type-safe. */
 export interface AppEnv {
   apiBaseUrl: string | null;
-  /** EAS project id — push tokens (M4) and the updates URL derive from it. */
+  /** EAS project id — push tokens and the updates URL derive from it. */
   easProjectId: string | null;
-  /** Sentry DSN (task 10) — supplied via env, never committed. Null → disabled. */
+  /** Sentry DSN — supplied via env, never committed. Null → disabled. */
   sentryDsn: string | null;
 }
 

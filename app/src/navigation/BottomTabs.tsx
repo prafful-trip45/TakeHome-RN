@@ -8,7 +8,7 @@ import type { TabParamList } from './routes';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
-/** Bottom tabs rendered with the custom floating pill bar (task 1). */
+/** Bottom tabs rendered with the custom floating pill bar. */
 export function BottomTabs() {
   return (
     <Tab.Navigator

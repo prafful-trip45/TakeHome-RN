@@ -1,9 +1,8 @@
 import { GateDecision, type VersionConfig } from './types';
 
 /**
- * Pure version helpers (no native imports → unit-testable in isolation, like
- * navigation/deeplinks.ts). `compareVersions` is a copy of the canonical
- * implementation in `admin/src/lib/validation.ts` — keep them in sync.
+ * Pure version helpers (no native imports, so unit-testable in isolation).
+ * `compareVersions` mirrors `admin/src/lib/validation.ts` — keep them in sync.
  */
 
 const VERSION_RE = /^\d+(\.\d+){0,3}$/;
@@ -28,16 +27,16 @@ export function compareVersions(a: string, b: string): -1 | 0 | 1 {
 }
 
 /**
- * The gate decision, as a pure function of its inputs:
+ * Gate decision as a pure function of its inputs:
  *
  *   effective = max(installed, simulatedInstalled)   // mock "install" bumps this
  *   effective >= latest                    → none
  *   effective <  minSupported || force     → forced
- *   otherwise (newer exists)               → optional, unless the user already
- *                                            dismissed THIS latestVersion
+ *   otherwise (newer exists)               → optional, unless this latestVersion
+ *                                            was already dismissed
  *
- * A malformed config never throws — callers pre-validate with isVersionString
- * and treat invalid as "no update" (fail-open; documented assumption).
+ * Never throws; callers pre-validate with isVersionString and treat invalid
+ * config as "no update" (fail-open).
  */
 export function evaluateGate(
   config: VersionConfig,

@@ -13,29 +13,29 @@ import { useNotifications } from './src/hooks/useNotifications';
 import { NavigationComponent } from './src/navigation/NavigationComponent';
 
 /**
- * Provider nesting mirrors the reference app:
+ * Provider nesting:
  *   GestureHandlerRootView -> SafeAreaProvider(initialWindowMetrics) -> NavigationComponent
- * Splash hides only when bootstrap (useBootstrap) AND navigation (onReady) are
- * both done — see splashController. Sentry.wrap wraps this in M7.
+ * Splash hides only when bootstrap (useBootstrap) and navigation (onReady) are
+ * both done — see splashController. Sentry.wrap wraps this in index.ts.
  */
 export default function App() {
   useBootstrap();
-  // Task 3 (M4): channel → permission → token → admin registration (post-render,
-  // never blocks splash). Tap routing lives in linkingConfig (D8), not here.
+  // Notifications: channel → permission → token → admin registration
+  // (post-render, never blocks splash). Tap routing lives in linkingConfig.
   useNotifications();
 
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider initialMetrics={initialWindowMetrics}>
         <NavigationComponent />
-        {/* Task 6 (M5): OTA overlay — mounts the launch/resume update checks and
-            shows a consent banner when an update is ready. Renders null otherwise. */}
+        {/* OTA overlay — mounts the launch/resume update checks and shows a
+            consent banner when an update is ready. Renders null otherwise. */}
         <UpdateBanner />
-        {/* Task 8 (M6): native/binary update gate — mounts the launch/resume config
-            checks; blocking modal (forced) / consent prompt (optional). Distinct
-            from the OTA banner above: OTA = new JS in the same binary. */}
+        {/* Native/binary update gate — mounts the launch/resume config checks;
+            blocking modal (forced) / consent prompt (optional). Distinct from the
+            OTA banner above: OTA = new JS in the same binary. */}
         <UpdateGateModal />
-        {/* Task 3: token display/copy + permission diagnostics (M7 adds crash buttons). */}
+        {/* Token display/copy + permission diagnostics + crash-test buttons. */}
         <DevPanel />
       </SafeAreaProvider>
     </GestureHandlerRootView>

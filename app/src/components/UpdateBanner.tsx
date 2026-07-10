@@ -5,11 +5,9 @@ import { useOtaUpdates } from '../services/updates/useOtaUpdates';
 import { OtaPhase } from '../services/updates/types';
 
 /**
- * Non-blocking consent prompt for a ready OTA (task 6 / M5). Renders null unless
- * an update is pending, so it costs nothing on the happy path. Reload is
- * user-initiated — respects consent and avoids the experimental backgrounded
- * reloadAsync() path. This component also mounts useOtaUpdates (the launch +
- * resume checks), so it is the single OTA entry point in the tree.
+ * Non-blocking consent prompt for a ready OTA; renders null unless one is pending.
+ * Reload is user-initiated (avoids the experimental backgrounded reloadAsync path).
+ * Also mounts useOtaUpdates, making this the single OTA entry point in the tree.
  */
 function UpdateBannerImpl(): React.ReactElement | null {
   const { phase, reload } = useOtaUpdates();

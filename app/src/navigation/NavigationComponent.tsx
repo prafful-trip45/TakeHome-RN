@@ -13,14 +13,13 @@ import type { RootStackParamList } from './routes';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 /**
- * The single NavigationContainer + root native-stack (mirrors EduBridge's split).
- * The tab navigator is the only root screen for now; modal/error roots can be
- * added later. Queued deep-link/notification navigation flushes on `onReady`.
+ * The single NavigationContainer + root native-stack. The tab navigator is the
+ * only root screen for now; modal/error roots can be added later. Queued
+ * deep-link/notification navigation flushes on `onReady`.
  */
 export function NavigationComponent() {
-  // Task 10: screen_view analytics — fires once per focused-route CHANGE (the
-  // ref dedupes tab re-presses / param-only updates). Firebase-unavailable →
-  // analyticsEvents no-ops, so this is safe in every build.
+  // screen_view analytics — fires once per focused-route change (the ref dedupes
+  // tab re-presses / param-only updates). No-ops when Firebase is unavailable.
   const lastRouteRef = useRef<string | undefined>(undefined);
   const trackCurrentRoute = useCallback(() => {
     const name = navigationRef.isReady() ? navigationRef.getCurrentRoute()?.name : undefined;

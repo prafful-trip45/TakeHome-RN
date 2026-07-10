@@ -4,10 +4,10 @@ import { buildScreenUrl, parseScreen } from './deeplinks';
 /**
  * Bridge an expo-notifications tap into the same URL pipeline as deep links, so a
  * single React Navigation `linking` resolver handles both (foreground/background/
- * killed). The payload carries `data.screen` (per the spec) and optional
- * `data.highlight`; an explicit `data.url` is honored if present.
+ * killed). The payload carries `data.screen` and optional `data.highlight`; an
+ * explicit `data.url` is honored if present.
  *
- * Returns null when the notification has no routable target — the caller then does
+ * Returns null when the notification has no routable target, so the caller does
  * nothing rather than navigating somewhere wrong.
  */
 export function notificationResponseToUrl(

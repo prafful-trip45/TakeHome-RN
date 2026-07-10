@@ -14,13 +14,13 @@ import type { GateDecision } from '../versionGate/types';
 const SCOPE = 'analytics';
 
 /**
- * Firebase Analytics owns PRODUCT EVENTS only (decision D5) — screen views,
- * notification opens, update funnel. It never receives errors/crashes (Sentry's
- * job), so there is zero duplicate reporting between the two tools.
+ * Firebase Analytics owns product events only — screen views, notification
+ * opens, update funnel. Errors/crashes go to Sentry, so there is no duplicate
+ * reporting between the two.
  *
  * Availability-guarded: without google-services.json / GoogleService-Info.plist
- * in the build (pre-O8 accounts, or Expo Go) the native module has no default
- * app — init fails softly and every track call becomes a no-op. v25 modular API.
+ * in the build (or in Expo Go) the native module has no default app, so init
+ * fails softly and every track call becomes a no-op. v25 modular API.
  */
 
 type Analytics = ReturnType<typeof getAnalytics>;
@@ -33,9 +33,9 @@ export function initAnalytics(): void {
     void setAnalyticsCollectionEnabled(analytics, true);
     logger.info(SCOPE, 'initialized');
     setInitialUserProperties();
-    // OTA visibility: record ota_applied ONLY on a real build running a downloaded
-    // EAS Update (not the embedded bundle). `isEnabled` gates out dev-clients, where
-    // updates are inert yet `isEmbeddedLaunch` is false — which would false-fire this.
+    // Record ota_applied only on a real build running a downloaded EAS Update,
+    // not the embedded bundle. `isEnabled` excludes dev-clients, where updates
+    // are inert yet `isEmbeddedLaunch` is false and would false-fire this.
     if (Updates.isEnabled && Updates.isEmbeddedLaunch === false) {
       track('ota_applied', { update_id: Updates.updateId ?? 'unknown' });
     }
@@ -46,9 +46,8 @@ export function initAnalytics(): void {
 }
 
 /**
- * Non-PII user properties for segmentation — shown in DebugView "User Properties"
- * and associated with every event (incl. screen_view). All values are strings,
- * ≤36 chars, non-PII (spec).
+ * Non-PII user properties for segmentation, associated with every event
+ * (including screen_view). All values are strings, ≤36 chars, non-PII.
  */
 function setInitialUserProperties(): void {
   if (!analytics) return;
@@ -72,8 +71,7 @@ function track(name: string, params?: Record<string, string | number>): void {
   );
 }
 
-/** The app's whole event vocabulary — one place, so the no-dup division (D5)
- *  and the README event table stay honest. */
+/** The app's entire event vocabulary in one place. */
 export const analyticsEvents = {
   /** Fired by NavigationComponent on every focused-route change. */
   screenView(screenName: string): void {
@@ -86,7 +84,7 @@ export const analyticsEvents = {
   notificationOpened(screen?: string): void {
     track('notification_opened', screen ? { screen } : undefined);
   },
-  /** Update-gate funnel (task 8 / M6). `kind` is only ever Optional/Forced here. */
+  /** Update-gate funnel. `kind` is only ever Optional/Forced here. */
   updatePromptShown(kind: GateDecision, latest: string): void {
     track('update_prompt_shown', { kind, latest_version: latest });
   },
