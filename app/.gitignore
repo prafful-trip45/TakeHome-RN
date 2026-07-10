@@ -44,8 +44,13 @@ yarn-error.*
 /ios
 /android
 
-# Firebase credential files (task 10) — provided via EAS file env vars, never committed
-google-services.json
+# Firebase credential files (task 10)
+# google-services.json is committed intentionally: it ships inside the app binary
+# anyway and its Android API key is restricted by package name + signing cert.
+# Committing it lets `eas build --local` (which builds from the git archive) find
+# it, since local builds don't inject the EAS file env var. The iOS plist and the
+# admin service-account.json (a true secret) stay ignored.
+# google-services.json  (intentionally tracked — see above)
 GoogleService-Info.plist
 service-account.json
 
