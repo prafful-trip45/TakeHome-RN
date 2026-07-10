@@ -6,9 +6,11 @@ import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import { DevPanel } from './src/components/DevPanel';
+import { ForegroundNotificationBanner } from './src/components/ForegroundNotificationBanner';
 import { UpdateBanner } from './src/components/UpdateBanner';
 import { UpdateGateModal } from './src/components/UpdateGateModal';
 import { useBootstrap } from './src/hooks/useBootstrap';
+import { useForegroundNotifications } from './src/hooks/useForegroundNotifications';
 import { useNotifications } from './src/hooks/useNotifications';
 import { NavigationComponent } from './src/navigation/NavigationComponent';
 
@@ -23,11 +25,18 @@ export default function App() {
   // Notifications: channel → permission → token → admin registration
   // (post-render, never blocks splash). Tap routing lives in linkingConfig.
   useNotifications();
+  // Foreground-arrival listener: on Android the OS shows no heads-up banner over
+  // our own foregrounded app, so we surface an in-app banner instead.
+  useForegroundNotifications();
 
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider initialMetrics={initialWindowMetrics}>
         <NavigationComponent />
+        {/* In-app banner for notifications that arrive while the app is
+            foregrounded (Android renders no OS heads-up over our own app).
+            Tap replays through the same `linking` resolver. Null when idle. */}
+        <ForegroundNotificationBanner />
         {/* OTA overlay — mounts the launch/resume update checks and shows a
             consent banner when an update is ready. Renders null otherwise. */}
         <UpdateBanner />
