@@ -130,21 +130,35 @@ Nothing sensitive is committed. `EXPO_PUBLIC_*` values are inlined into the JS b
 ## How to test each feature
 
 ### 1. Deep links & App Links
-Scheme `swagassignment://`, routes `screen/1|2|3` (+ `?highlight=true` — the screen reacts
-by highlighting its title).
+**Scheme** `swagassignment://` · **routes** `screen/1|2|3` · **param** `?highlight=true`
+(marks the target screen's title `Screen N ✨`). https App Links map the same paths on
+`take-home-rn.vercel.app`. Cold (killed → launch) and warm (running) starts both route;
+notification taps use the same resolver.
+
+**Sample links** — tap them, or fire via CLI:
+
+| Target | Custom scheme | https App Link |
+|---|---|---|
+| Screen 1 | `swagassignment://screen/1` | `https://take-home-rn.vercel.app/screen/1` |
+| Screen 2 | `swagassignment://screen/2` | `https://take-home-rn.vercel.app/screen/2` |
+| Screen 3 | `swagassignment://screen/3` | `https://take-home-rn.vercel.app/screen/3` |
+| Screen 2 + highlight | `swagassignment://screen/2?highlight=true` | `https://take-home-rn.vercel.app/screen/2?highlight=true` |
 
 ```bash
-# custom scheme (works on any dev/preview build)
+# uri-scheme (custom scheme — works on any dev/preview build)
 npx uri-scheme open "swagassignment://screen/2" --android
-npx uri-scheme open "swagassignment://screen/3?highlight=true" --android
+npx uri-scheme open "swagassignment://screen/2?highlight=true" --android   # → "Screen 2 ✨"
 
-# cold start: kill first, then open
+# adb (custom scheme or https App Link), targeting our package
+adb shell am start -a android.intent.action.VIEW -d "swagassignment://screen/3" gg.swag.assignment
+adb shell am start -a android.intent.action.VIEW -d "https://take-home-rn.vercel.app/screen/1"
+
+# cold start: force-stop first, then open → routes on launch
 adb shell am force-stop gg.swag.assignment
-adb shell am start -a android.intent.action.VIEW -d "swagassignment://screen/1" gg.swag.assignment
+adb shell am start -a android.intent.action.VIEW -d "swagassignment://screen/2" gg.swag.assignment
 
-# https App Links (after admin deploy + rebuild + verification)
-adb shell pm get-app-links gg.swag.assignment            # → take-home-rn.vercel.app: verified
-adb shell am start -a android.intent.action.VIEW -d "https://take-home-rn.vercel.app/screen/2"
+# https App Links verification status
+adb shell pm get-app-links gg.swag.assignment    # → take-home-rn.vercel.app: verified
 ```
 
 ### 2. Push notifications
@@ -224,6 +238,7 @@ Full detail: per-task solution docs in **[tech/tasks/](tech/tasks/)**, decisions
 ## Docs
 
 - **[tech/VERIFICATION.md](tech/VERIFICATION.md)** — ordered on-device test runbook (debug vs preview build matrix)
+- **[tech/DEMO.md](tech/DEMO.md)** — Loom recording checklist (what to show, in order)
 - **[tech/tasks/](tech/tasks/)** — per-task solution docs (requirements → architecture → implementation → diagram)
 - **[tech/DECISIONS.md](tech/DECISIONS.md)** · **[tech/TASKS.md](tech/TASKS.md)** · **[tech/MILESTONES.md](tech/MILESTONES.md)** · **[tech/PROGRESS.md](tech/PROGRESS.md)**
 - **[admin/README.md](admin/README.md)** — admin panel setup, API routes, Vercel deploy

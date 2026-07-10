@@ -12,18 +12,16 @@ import {
 import { GatePhase, useAppStore } from '../store/useAppStore';
 
 /**
- * Native/binary update gate UI (task 8 / M6). Renders null on the happy path.
+ * Native/binary update gate UI; renders null on the happy path.
  *
- *  - forced   → blocking modal: no dismiss action, onRequestClose no-ops
- *               (Android back does nothing) — usage is blocked until "updated".
+ *  - forced   → blocking modal: no dismiss, onRequestClose no-ops (Android back
+ *               does nothing). Usage blocked until updated.
  *  - optional → consent modal: Update now / Not now (dismissal persisted).
- *  - then the MOCKED in-app flow: downloading (fake progress) → ready →
- *    installing → installed — the user never leaves the app (spec-allowed mock).
- *  - fallback → "Open store page" link (placeholder URL), the documented branch
- *    for when an in-app update path is unavailable.
+ *  - then a mocked in-app flow: downloading → ready → installing → installed,
+ *    so the user never leaves the app.
+ *  - fallback → "Open store page" link for when no in-app update path exists.
  *
- * Also mounts useVersionGate (launch/resume checks) — the single gate entry
- * point in the tree, same pattern as UpdateBanner ↔ useOtaUpdates.
+ * Also mounts useVersionGate, making this the single gate entry point in the tree.
  */
 function UpdateGateModalImpl(): React.ReactElement | null {
   useVersionGate();
@@ -49,7 +47,7 @@ function UpdateGateModalImpl(): React.ReactElement | null {
       visible
       transparent
       animationType="fade"
-      // Forced flow: Android back is swallowed; optional flow: back == "Not now".
+      // Forced: swallow Android back. Optional: back acts as "Not now".
       onRequestClose={dismissible ? dismissOptionalUpdate : () => undefined}
     >
       <View style={styles.backdrop}>

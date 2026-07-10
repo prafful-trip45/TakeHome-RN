@@ -13,17 +13,16 @@ import {
 import { logger } from '../../utils/logger';
 
 /**
- * Push-notification service (task 3). Plain-function module that writes results
- * into the Zustand store (EduBridge services idiom). Orchestrated once at root
- * by useNotifications; DevPanel calls syncNotifications() for retries.
+ * Push-notification service. Plain-function module that writes results into the
+ * Zustand store. Orchestrated once at root by useNotifications; DevPanel calls
+ * syncNotifications() for retries.
  *
- * NOT here by design (D8): notification *tap* listeners — the unified React
- * Navigation `linking` resolver in navigation/linkingConfig.ts owns those, so
- * they exist exactly once.
+ * Notification *tap* listeners live in navigation/linkingConfig.ts (the unified
+ * React Navigation `linking` resolver), so they exist exactly once — not here.
  */
 
-// Foreground presentation (module scope per SDK 57 docs — registered before any
-// notification can arrive). SDK 57 shape: banner/list, not the old shouldShowAlert.
+// Foreground presentation, at module scope so it's registered before any
+// notification arrives. SDK 57 shape: banner/list, not the old shouldShowAlert.
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowBanner: true,
@@ -65,9 +64,9 @@ export async function requestPermission(): Promise<NotificationPermission> {
   return toPermission(status);
 }
 
-/** Expo push token. Android needs FCM creds in the build (M7's google-services);
- *  iOS needs APNs. Simulators/emulators may or may not support tokens — errors
- *  are surfaced to the store, never thrown to the UI. */
+/** Expo push token. Android needs FCM creds in the build (google-services);
+ *  iOS needs APNs. Simulators/emulators may not support tokens — errors are
+ *  surfaced to the store, never thrown to the UI. */
 async function fetchExpoPushToken(): Promise<string> {
   const { data } = await Notifications.getExpoPushTokenAsync(
     env.easProjectId ? { projectId: env.easProjectId } : undefined,
@@ -75,8 +74,8 @@ async function fetchExpoPushToken(): Promise<string> {
   return data;
 }
 
-/** Best-effort POST to the admin registry (contract: admin /api/register).
- *  Failure must never disrupt startup (admin doc B4). */
+/** Best-effort POST to the admin registry (admin /api/register).
+ *  Failure must never disrupt startup. */
 async function registerTokenWithAdmin(token: string): Promise<AdminRegistration> {
   if (!env.apiBaseUrl) {
     logger.info('notifications', 'no apiBaseUrl configured — skipping admin registration');
@@ -108,9 +107,8 @@ async function registerTokenWithAdmin(token: string): Promise<AdminRegistration>
   }
 }
 
-/** Report a notification-open: Firebase product event (task 10 / D5) + the
- *  admin's /api/events counter (bonus). Fire-and-forget — must never block or
- *  break the tap-navigation path. */
+/** Report a notification-open: Firebase product event + the admin's /api/events
+ *  counter. Fire-and-forget — must never block or break tap-navigation. */
 export function reportNotificationOpened(screen?: unknown): void {
   const screenStr =
     typeof screen === 'string' || typeof screen === 'number' ? String(screen) : undefined;
@@ -125,17 +123,15 @@ export function reportNotificationOpened(screen?: unknown): void {
 }
 
 let syncInFlight = false;
-// Ask the OS at most ONCE automatically per app launch. After a denial Android
-// keeps canAskAgain=true, so without this we'd re-prompt on every sync (nagging).
-// A fresh launch resets this; DevPanel "Retry" passes { manual: true } to re-ask
-// on an explicit user action.
+// Ask the OS at most once automatically per launch. Android keeps
+// canAskAgain=true after a denial, so without this guard we'd re-prompt on every
+// sync. DevPanel "Retry" passes { manual: true } to re-ask on user action.
 let autoPromptedThisSession = false;
 
 /**
- * The full startup/retry flow: channel → permission (granted/denied/undetermined
- * each handled) → token → admin registration. Writes every step into the store;
- * a denied permission is a terminal-but-graceful state (UI shows fallback, no
- * crash, re-runnable after the user changes Settings).
+ * Full startup/retry flow: channel → permission → token → admin registration.
+ * Writes every step into the store. A denial is terminal-but-graceful (UI shows
+ * fallback, no crash) and re-runnable after the user changes Settings.
  */
 export async function syncNotifications({
   manual = false,
@@ -146,11 +142,10 @@ export async function syncNotifications({
   try {
     await ensureAndroidChannel();
 
-    // Android reports `denied` (with canAskAgain=true) BEFORE the first prompt —
-    // it does NOT use `undetermined` like iOS — so gate on canAskAgain, not status.
-    // And prompt at most once automatically per launch: after a denial canAskAgain
-    // stays true, so auto-re-asking on every sync would nag. `manual` (DevPanel
-    // Retry) bypasses the session guard for an explicit user re-request.
+    // Android reports `denied` (canAskAgain=true) before the first prompt — it
+    // does NOT use `undetermined` like iOS — so gate on canAskAgain, not status.
+    // Prompt at most once automatically per launch (canAskAgain stays true after
+    // a denial); `manual` (DevPanel Retry) bypasses the session guard.
     const current = await Notifications.getPermissionsAsync();
     let permission = toPermission(current.status);
     const mayPrompt =

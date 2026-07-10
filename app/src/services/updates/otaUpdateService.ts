@@ -6,9 +6,9 @@ import { OtaCheckResult } from './types';
 const SCOPE = 'ota';
 
 /**
- * Check for an update and, if present, download it. Fully guarded: returns a value
- * for every branch and never throws to the caller. Offline / fetch failure →
- * 'error' (logged); the app keeps running the current bundle.
+ * Check for an update and download it if present. Never throws; returns a result
+ * for every branch. Offline/fetch failure returns 'error' and the app keeps
+ * running the current bundle.
  */
 export async function checkAndDownload(): Promise<OtaCheckResult> {
   if (!isOtaActive()) {
@@ -17,7 +17,7 @@ export async function checkAndDownload(): Promise<OtaCheckResult> {
   }
   try {
     const check = await Updates.checkForUpdateAsync();
-    // A roll-back-to-embedded directive also means "there's something to apply".
+    // A roll-back-to-embedded directive also counts as something to apply.
     if (!check.isAvailable && !check.isRollBackToEmbedded) {
       logger.debug(SCOPE, 'up to date');
       return OtaCheckResult.UpToDate;
@@ -29,13 +29,13 @@ export async function checkAndDownload(): Promise<OtaCheckResult> {
       ? OtaCheckResult.Downloaded
       : OtaCheckResult.UpToDate;
   } catch (err) {
-    // Offline or fetch failure: degrade silently, keep running the current bundle.
+    // Degrade silently on offline/fetch failure; stay on the current bundle.
     logger.warn(SCOPE, 'check/download failed (likely offline)', err);
     return OtaCheckResult.Error;
   }
 }
 
-/** Apply a downloaded update by reloading onto it. Guarded so a failed reload no-ops. */
+/** Apply a downloaded update by reloading onto it. A failed reload no-ops. */
 export async function applyUpdate(): Promise<void> {
   if (!isOtaActive()) return;
   try {

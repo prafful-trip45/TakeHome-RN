@@ -1,11 +1,7 @@
 import { Routes } from './routes';
 import type { DeepLinkScreen } from './routes';
 
-/**
- * Pure deep-link helpers (no Expo/native imports → unit-testable in isolation).
- * The whole routing surface is client-known (3 static screens), so there is no
- * server round-trip or auth gate — unlike the MudraApp AuthSlice resolver.
- */
+/** Pure deep-link helpers (no Expo/native imports → unit-testable in isolation). */
 
 const SCREEN_TO_NUMBER: Record<DeepLinkScreen, 1 | 2 | 3> = {
   [Routes.Screen1]: 1,
@@ -16,7 +12,7 @@ const SCREEN_TO_NUMBER: Record<DeepLinkScreen, 1 | 2 | 3> = {
 /**
  * Normalize a `screen` value from a deep link or notification payload to a route.
  * Accepts `1`, `'2'`, `'Screen3'`, `'screen 1'`, etc. Returns null if unrecognized
- * (caller then no-ops instead of navigating somewhere wrong).
+ * so the caller no-ops instead of navigating somewhere wrong.
  */
 export function parseScreen(value: unknown): DeepLinkScreen | null {
   if (value == null) return null;
@@ -38,7 +34,7 @@ export function screenToPath(screen: DeepLinkScreen): string {
   return `screen/${SCREEN_TO_NUMBER[screen]}`;
 }
 
-/** Build a canonical deep-link URL (used to bridge notification taps into linking). */
+/** Build a canonical deep-link URL, used to bridge notification taps into linking. */
 export function buildScreenUrl(screen: DeepLinkScreen, highlight?: boolean): string {
   const query = highlight ? '?highlight=true' : '';
   return `swagassignment://${screenToPath(screen)}${query}`;

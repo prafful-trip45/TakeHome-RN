@@ -12,15 +12,14 @@ import { evaluateGate, isVersionString } from './versionCompare';
 const SCOPE = 'versionGate';
 
 /**
- * Native/binary update gate (task 8 / M6). Plain-function service writing to the
- * Zustand store (same idiom as notificationService). Distinct from OTA (task 6):
- * OTA ships JS bundles into the SAME binary via expo-updates; this gate handles a
- * NEW binary via a remotely-controlled config from the admin panel.
+ * Native/binary update gate. Plain-function service writing to the Zustand store.
+ * Distinct from OTA: OTA ships JS bundles into the SAME binary via expo-updates;
+ * this gate handles a NEW binary via remote config from the admin panel.
  *
- * WHAT IS MOCKED (spec-allowed): the download and install legs. `Downloading`
- * ticks fake progress; `Installing` persists a simulated installed version (MMKV)
- * and shows success — no real store round-trip. Everything else (remote config,
- * comparison, forced/optional split, consent, persistence, fallback) is real.
+ * Mocked: the download and install legs. `Downloading` ticks fake progress;
+ * `Installing` persists a simulated installed version (MMKV) and shows success —
+ * no real store round-trip. Everything else (remote config, comparison,
+ * forced/optional split, consent, persistence, fallback) is real.
  */
 
 // ── Persistence (MMKV, synchronous) ──────────────────────────────────────────
@@ -28,9 +27,8 @@ const KEY_DISMISSED = 'versionGate.dismissedVersion';
 const KEY_SIMULATED = 'versionGate.simulatedInstalledVersion';
 
 /**
- * Pure decision → the store phase to show. Explicit map because `GateDecision`
- * and `GatePhase` are distinct (nominal) enums that happen to share the Optional
- * / Forced string values — so a decision can't be assigned to a phase directly.
+ * Decision → store phase. Explicit map because `GateDecision` and `GatePhase`
+ * are distinct enums (a decision can't be assigned to a phase directly).
  */
 const DECISION_TO_PHASE: Record<GateDecision, GatePhase> = {
   [GateDecision.None]: GatePhase.UpToDate,
@@ -38,8 +36,8 @@ const DECISION_TO_PHASE: Record<GateDecision, GatePhase> = {
   [GateDecision.Forced]: GatePhase.Forced,
 };
 
-/** Installed binary version: real native value first (verified SDK 57 API,
- *  null on web), config version as dev/web fallback. */
+/** Installed binary version: native value first (null on web), config version
+ *  as dev/web fallback. */
 export function getInstalledVersion(): string {
   return Application.nativeApplicationVersion ?? Constants.expoConfig?.version ?? '0.0.0';
 }
@@ -50,7 +48,7 @@ function parseVersionConfig(raw: unknown): VersionConfig | null {
   const c = (raw as { config?: unknown }).config;
   if (typeof c !== 'object' || c === null) return null;
   const b = c as Record<string, unknown>;
-  // Malformed versions ⇒ reject the whole config (fail-open) rather than risk a
+  // Malformed versions reject the whole config (fail-open) rather than risk a
   // nonsensical gate decision.
   if (!isVersionString(b.latestVersion) || !isVersionString(b.minSupportedVersion)) return null;
   return {
@@ -78,7 +76,7 @@ async function fetchVersionConfig(): Promise<VersionConfig | null> {
     }
     return parseVersionConfig(await res.json());
   } catch (err) {
-    // Offline / unreachable: fail-open (app stays usable) — documented assumption.
+    // Offline / unreachable: fail-open, app stays usable.
     logger.warn(SCOPE, 'config unreachable (likely offline) — failing open', err);
     return null;
   } finally {
@@ -127,7 +125,7 @@ export async function checkVersionGate(): Promise<void> {
       storage.getString(KEY_DISMISSED) ?? null,
     );
     store.setGatePhase(DECISION_TO_PHASE[decision]);
-    // Task 10 (D5): update-funnel product event — Firebase only, never Sentry.
+    // Update-funnel product event — Firebase only, never Sentry.
     if (decision === GateDecision.Optional || decision === GateDecision.Forced) {
       analyticsEvents.updatePromptShown(decision, config.latestVersion);
     }
@@ -142,7 +140,7 @@ export async function checkVersionGate(): Promise<void> {
   }
 }
 
-// ── Mocked download / install (spec: fake progress → ready → install/reload) ─
+// ── Mocked download / install (fake progress → ready → install/reload) ───────
 let progressTimer: ReturnType<typeof setInterval> | null = null;
 
 function clearProgressTimer(): void {
@@ -189,8 +187,8 @@ export function installMockUpdate(): void {
   }, 800);
 }
 
-/** User consent respected: persist the dismissal for THIS latestVersion only —
- *  a future, newer version prompts again. Forced updates never call this. */
+/** Persist the dismissal for THIS latestVersion only — a future, newer version
+ *  prompts again. Forced updates never call this. */
 export function dismissOptionalUpdate(): void {
   const store = useAppStore.getState();
   if (store.gatePhase !== GatePhase.Optional || !store.gateConfig) return;
@@ -206,10 +204,7 @@ export function acknowledgeInstalled(): void {
   if (store.gatePhase === GatePhase.Installed) store.setGatePhase(GatePhase.UpToDate);
 }
 
-/**
- * Fallback branch (spec-required): open the store listing when the in-app path
- * is unavailable. `downloadUrl` is a documented placeholder in this assignment.
- */
+/** Open the store listing when the in-app path is unavailable. */
 export async function openStoreFallback(): Promise<void> {
   const url = useAppStore.getState().gateConfig?.downloadUrl;
   if (!url) return;
@@ -220,7 +215,7 @@ export async function openStoreFallback(): Promise<void> {
   }
 }
 
-/** Dev/demo helper (DevPanel): wipe persisted gate state so flows can be replayed. */
+/** DevPanel helper: wipe persisted gate state so flows can be replayed. */
 export function resetGatePersistence(): void {
   storage.remove(KEY_DISMISSED);
   storage.remove(KEY_SIMULATED);

@@ -1,14 +1,14 @@
-/** UI-facing phase for the OTA lifecycle (drives the banner + optional debug row). */
+/** UI-facing OTA lifecycle phase; drives the update banner. */
 export enum OtaPhase {
   Idle = 'idle', // not started, or OTA inactive (dev build / Expo Go)
   Checking = 'checking',
   Downloading = 'downloading',
-  Ready = 'ready', // downloaded & pending → awaiting reload
+  Ready = 'ready', // downloaded & pending, awaiting reload
   UpToDate = 'up-to-date',
-  Error = 'error', // offline / failed — non-fatal, we stay on the current bundle
+  Error = 'error', // offline/failed; non-fatal, stays on current bundle
 }
 
-/** Result of a single check+download cycle from the service layer. */
+/** Result of a single check+download cycle. */
 export enum OtaCheckResult {
   Downloaded = 'downloaded',
   UpToDate = 'up-to-date',

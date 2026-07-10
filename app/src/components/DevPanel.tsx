@@ -18,10 +18,8 @@ import { NotificationPermission, useAppStore } from '../store/useAppStore';
 import { logger } from '../utils/logger';
 
 /**
- * Dev/diagnostics overlay (spec: "display the Expo push token somewhere in-app
- * so it can be copied/registered with the admin panel"). Kept as an overlay so
- * the three screens stay pure centered text (task 1). M7 adds the
- * test-crash/test-error buttons here.
+ * Dev/diagnostics overlay: displays the Expo push token for copy/registration,
+ * plus test-crash/test-error buttons. An overlay so the three screens stay clean.
  */
 function DevPanelBase() {
   const insets = useSafeAreaInsets();
@@ -51,8 +49,8 @@ function DevPanelBase() {
     }
   }, [pushToken]);
 
-  // Show only the token body; copy still copies the FULL `ExponentPushToken[...]`
-  // (that's the exact value the admin / Expo push API require).
+  // Display only the token body; copy still copies the full `ExponentPushToken[...]`
+  // (the exact value the Expo push API requires).
   const displayToken = pushToken?.replace(/^ExponentPushToken\[(.*)\]$/, '$1');
 
   return (
@@ -90,7 +88,7 @@ function DevPanelBase() {
             <Text style={styles.label}>Admin registration</Text>
             <Text style={styles.value}>{adminRegistration}</Text>
 
-            <Text style={styles.label}>Update gate (task 8)</Text>
+            <Text style={styles.label}>Update gate</Text>
             <Text style={styles.value}>
               v{getInstalledVersion()} · {gatePhase}
             </Text>
@@ -107,7 +105,7 @@ function DevPanelBase() {
               <Text style={styles.buttonLabel}>Reset gate persistence (demo)</Text>
             </Pressable>
 
-            <Text style={styles.label}>Observability (task 10)</Text>
+            <Text style={styles.label}>Observability</Text>
             <Text style={styles.value}>
               Sentry: {isSentryEnabled() ? 'enabled' : 'off (no DSN)'} · Analytics:{' '}
               {isAnalyticsEnabled() ? 'enabled' : 'off (no Firebase config)'}
@@ -118,9 +116,8 @@ function DevPanelBase() {
             <Pressable
               style={styles.button}
               onPress={() => {
-                // Unhandled on purpose: proves the global JS error handler +
-                // Sentry capture path (in dev the RedBox intercepts first —
-                // verify on a release/preview build).
+                // Unhandled on purpose to exercise the global JS error handler +
+                // Sentry capture. In dev the RedBox intercepts first; verify on release.
                 throw new Error('SWAG unhandled JS error — DevPanel');
               }}
             >

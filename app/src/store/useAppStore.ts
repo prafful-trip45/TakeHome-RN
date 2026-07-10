@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import type { VersionConfig } from '../services/versionGate/types';
 
-/** Notification permission tri-state (task 3 handles all three explicitly).
- *  String values mirror expo-notifications' `PermissionStatus` so API results map 1:1. */
+/** Notification permission tri-state. String values mirror expo-notifications'
+ *  `PermissionStatus` so API results map 1:1. */
 export enum NotificationPermission {
   Granted = 'granted',
   Denied = 'denied',
@@ -28,15 +28,15 @@ export enum AdminRegistration {
 }
 
 /**
- * Native update gate state machine (task 8 / M6). The download/install legs are
- * MOCKED per the spec — `Downloading` ticks fake progress; `Installing` →
- * `Installed` simulates the binary swap without a store round-trip.
+ * Native update gate state machine. Download/install legs are mocked:
+ * `Downloading` ticks fake progress; `Installing` → `Installed` simulates the
+ * binary swap without a store round-trip.
  *
  *   Idle → Checking → UpToDate | Optional | Forced | Skipped | Error
  *   Optional/Forced → Downloading(progress) → Ready → Installing → Installed
  *
- * `Skipped` = no apiBaseUrl configured. `Error` = config fetch failed → FAIL-OPEN
- * (app stays usable; documented assumption). String values kept stable for logs.
+ * `Skipped` = no apiBaseUrl configured. `Error` = config fetch failed; fails open
+ * so the app stays usable. String values kept stable for logs.
  */
 export enum GatePhase {
   Idle = 'idle',
@@ -53,9 +53,8 @@ export enum GatePhase {
 }
 
 /**
- * Lean global store (decision D4: Zustand over Redux — the app's real global
- * state is tiny). Written by services (EduBridge idiom: plain-function services
- * update the store singleton via getState()); read by DevPanel/screens.
+ * Lean global store (Zustand over Redux — real global state is tiny). Written by
+ * plain-function services via getState(); read by DevPanel/screens.
  */
 interface AppState {
   pushToken: string | null;
@@ -63,10 +62,10 @@ interface AppState {
   tokenStatus: TokenStatus;
   tokenError: string | null;
   adminRegistration: AdminRegistration;
-  // Version gate (task 8 / M6) — written only by versionGateService.
+  // Version gate — written only by versionGateService.
   gatePhase: GatePhase;
   gateConfig: VersionConfig | null;
-  /** Fake download progress, 0..1 (spec allows a simulated download). */
+  /** Simulated download progress, 0..1. */
   gateProgress: number;
   setPushToken: (token: string | null) => void;
   setPermission: (permission: NotificationPermission) => void;

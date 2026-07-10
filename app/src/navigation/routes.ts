@@ -1,6 +1,6 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
 
-/** Central route-name registry (mirrors EduBridge's `Routes` enum). */
+/** Central route-name registry. */
 export enum Routes {
   Tabs = 'Tabs',
   Screen1 = 'Screen1',
@@ -8,7 +8,7 @@ export enum Routes {
   Screen3 = 'Screen3',
 }
 
-/** Params a tab screen can receive (deep-link bonus carries `?highlight=true`). */
+/** Params a tab screen can receive (deep links may carry `?highlight=true`). */
 export type TabScreenParams = { highlight?: boolean } | undefined;
 
 export type TabParamList = {
@@ -27,7 +27,7 @@ export type DeepLinkScreen = keyof TabParamList;
 declare global {
   namespace ReactNavigation {
     // React Navigation's global augmentation needs an empty interface for
-    // declaration merging — the no-empty-object-type rule doesn't apply here.
+    // declaration merging.
     // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     interface RootParamList extends RootStackParamList {}
   }

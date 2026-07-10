@@ -4,14 +4,13 @@ import { Routes } from './routes';
 import type { DeepLinkScreen, RootStackParamList, TabScreenParams } from './routes';
 
 /** Container ref for imperative navigation from outside React (deep links,
- *  notification taps). Mirrors EduBridge's `navigationRef`. */
+ *  notification taps). */
 export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
 /**
  * Actions requested before the container is ready — e.g. a killed/cold-start
  * notification tap that resolves before the nav tree mounts — are queued and
- * flushed on NavigationContainer `onReady`. This is the EduBridge NavigationQueue
- * pattern and the key to correct killed-state routing (tasks 3 & 4).
+ * flushed on NavigationContainer `onReady`. Key to correct killed-state routing.
  */
 type PendingAction = () => void;
 const pendingActions: PendingAction[] = [];

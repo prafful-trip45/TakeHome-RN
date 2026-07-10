@@ -2,15 +2,13 @@ import { createMMKV } from 'react-native-mmkv';
 import { logger } from './logger';
 
 /**
- * Single shared MMKV instance — the app-wide persistence layer (user directive:
- * MMKV over AsyncStorage everywhere). Synchronous, so startup-path reads (e.g.
- * the version-gate's persisted dismissal) never add async ceremony.
+ * Single shared MMKV instance — the app-wide persistence layer. Synchronous, so
+ * startup-path reads (e.g. a persisted dismissal) never add async ceremony.
  *
- * API verified against the installed react-native-mmkv v4 typings (v4 is a Nitro
- * module: `createMMKV()` factory, `remove()` not `delete()`). Needs a dev/EAS
- * build (not Expo Go), which this project already requires (D1). Construction is
- * guarded so a missing native module degrades to a no-op in-memory store instead
- * of crashing the bundle at import time.
+ * react-native-mmkv v4 is a Nitro module: `createMMKV()` factory, `remove()` not
+ * `delete()`. Needs a dev/EAS build, not Expo Go. Construction is guarded so a
+ * missing native module degrades to an in-memory store instead of crashing the
+ * bundle at import time.
  */
 export interface KeyValueStorage {
   getString(key: string): string | undefined;

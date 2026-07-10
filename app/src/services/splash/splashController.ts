@@ -2,14 +2,13 @@ import * as SplashScreen from 'expo-splash-screen';
 import { logger } from '../../utils/logger';
 
 /**
- * Native splash lifecycle (task 2). Singleton module mirroring EduBridge's
- * SplashScreenManager: the splash hides only when BOTH the async bootstrap and
- * the navigation container are ready — no premature flash of empty screen —
- * with a failsafe timeout so a failed/offline bootstrap can never strand the
- * user on the splash.
+ * Native splash lifecycle. Singleton: the splash hides only when both the async
+ * bootstrap and the navigation container are ready (no premature flash of empty
+ * screen), with a failsafe timeout so a failed/offline bootstrap can never strand
+ * the user on the splash.
  *
- * `preventAutoHideAsync` is called at module scope (per SDK 57 docs: global
- * scope, not awaited, before any render).
+ * SDK 57: `preventAutoHideAsync` must run at module scope, not awaited, before
+ * any render.
  */
 
 // Keep the native splash up until we explicitly release it.

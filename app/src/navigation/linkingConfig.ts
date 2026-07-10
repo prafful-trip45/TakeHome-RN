@@ -9,11 +9,10 @@ import { Routes } from './routes';
 import type { RootStackParamList } from './routes';
 
 /**
- * Deep-link prefixes: the custom scheme (swagassignment://), the dev/exp scheme
- * from `Linking.createURL`, and the https App Links host. The host is env-driven
- * (EXPO_PUBLIC_APP_LINK_HOST, inlined by Metro) so it stays in sync with the
- * intentFilters / associatedDomains in app.config.ts — must match the deployed
- * admin domain that serves /.well-known/*.
+ * Deep-link prefixes: the custom scheme, the dev/exp scheme from
+ * `Linking.createURL`, and the https App Links host. The host is env-driven so it
+ * stays in sync with intentFilters / associatedDomains in app.config.ts — must
+ * match the deployed domain that serves /.well-known/*.
  */
 const appLinkHost = process.env.EXPO_PUBLIC_APP_LINK_HOST ?? 'take-home-rn.vercel.app';
 
@@ -23,18 +22,17 @@ export const linkPrefixes: string[] = [
   `https://${appLinkHost}`,
 ];
 
-/** `screen/N` (+ optional `?highlight=true`, the deep-link-params bonus). */
+/** `screen/N` (+ optional `?highlight=true`). */
 const screenPath = (n: 1 | 2 | 3) => ({
   path: `screen/${n}`,
   parse: { highlight: (value: string) => value === 'true' },
 });
 
 /**
- * ONE resolver for BOTH URL deep links and notification taps, across
+ * One resolver for both URL deep links and notification taps, across
  * foreground / background / killed. Notification responses are bridged into the
  * same URL pipeline via `getInitialURL` (cold start) and `subscribe` (running),
- * so there is a single routing source of truth — no redux/AuthSlice, no auth
- * coupling (unlike MudraApp, which disables `linking` and resolves in redux).
+ * giving a single routing source of truth.
  */
 export const linking: LinkingOptions<RootStackParamList> = {
   prefixes: linkPrefixes,
@@ -64,7 +62,7 @@ export const linking: LinkingOptions<RootStackParamList> = {
       const notifUrl = notificationResponseToUrl(response);
       if (notifUrl) {
         logger.debug('linking', 'initial url (notification)', notifUrl);
-        // Bonus analytics: killed/cold-start open (fire-and-forget).
+        // Analytics: killed/cold-start open (fire-and-forget).
         reportNotificationOpened(response?.notification.request.content.data?.screen);
       }
       return notifUrl;
@@ -89,7 +87,7 @@ export const linking: LinkingOptions<RootStackParamList> = {
           const url = notificationResponseToUrl(response);
           if (url) {
             logger.debug('linking', 'notification response', url);
-            // Bonus analytics: foreground/background open (fire-and-forget).
+            // Analytics: foreground/background open (fire-and-forget).
             reportNotificationOpened(response.notification.request.content.data?.screen);
             listener(url);
           }

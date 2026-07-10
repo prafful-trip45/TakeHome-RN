@@ -4,9 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
 /**
- * Detached, rounded (pill) bottom bar with margin + shadow that respects
- * safe-area insets so it never overlaps the home indicator / gesture bar (task 1).
- * Active tab is indicated by a filled pill + brightened label.
+ * Detached pill-shaped bottom bar. Respects safe-area insets so it clears the
+ * home indicator / gesture bar. Active tab shows a filled pill + brighter label.
  */
 function FloatingTabBarBase({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();

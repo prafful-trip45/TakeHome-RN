@@ -6,11 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { StatusBarStyle } from 'expo-status-bar';
 import type { TabScreenParams } from '../navigation/routes';
 
-/**
- * Shared body background + text for ALL three screens, so the *status bar* is the
- * only thing that varies per screen (task 9) — it can be verified in isolation,
- * not confounded by a different screen background each time.
- */
+// Shared body across all three screens so the status bar is the only per-screen variable.
 const SHARED_BACKGROUND = '#2a2d34';
 const SHARED_TEXT = '#ffffff';
 
@@ -23,26 +19,22 @@ interface ScreenScaffoldProps {
 }
 
 /**
- * Shared plain screen: centered title + a per-screen status bar (task 9).
+ * Centered-title screen with a per-screen status bar.
  *
- * `barStyle` is set imperatively on FOCUS, not declaratively on mount: bottom-tabs
- * keep visited screens mounted, so multiple mounted <StatusBar/> components would
- * fight (last-mounted wins) and go stale on back-navigation. A focus effect
- * re-asserts the style on every focus, in both directions.
+ * Status bar style is set imperatively on focus, not on mount: bottom-tabs keep
+ * visited screens mounted, so multiple mounted <StatusBar/> would fight and go
+ * stale on back-navigation. A focus effect re-asserts it on every focus.
  *
- * Android is edge-to-edge on SDK 57 (the native status bar is translucent and has
- * no settable background), so we paint the top inset ourselves to give each screen
- * a distinct, verifiable status bar color while the body stays identical. `barStyle`
- * flips with it so the OS icons/clock stay legible against each band.
+ * Android is edge-to-edge on SDK 57 (translucent native status bar, no settable
+ * background), so we paint the top inset ourselves for a distinct per-screen color;
+ * barStyle flips with it to keep OS icons legible.
  *
- * Deep-link params bonus (task 4): a `?highlight=true` link (or notification
- * `data.highlight`) arrives as `route.params.highlight` — the screen reacts by
- * marking its title, proving the param is carried end-to-end and consumed.
+ * A `?highlight=true` deep link (or notification `data.highlight`) arrives as
+ * `route.params.highlight`; the screen marks its title in response.
  */
 function ScreenScaffoldBase({ title, statusBarColor, statusBarStyle }: ScreenScaffoldProps) {
   const insets = useSafeAreaInsets();
-  // `useRoute` here resolves to the enclosing tab screen (Screen1/2/3), so its
-  // params carry the parsed `highlight` flag from the deep link / notification.
+  // useRoute resolves to the enclosing tab screen, whose params carry `highlight`.
   const highlight = (useRoute().params as TabScreenParams)?.highlight ?? false;
 
   useFocusEffect(
@@ -71,7 +63,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  // Overlays the status bar region (y=0..insets.top); OS icons draw on top of it.
+  // Overlays the status bar region; OS icons draw on top.
   statusBarBand: {
     position: 'absolute',
     top: 0,
@@ -88,7 +80,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
   },
-  // Deep-link highlight reaction: an unmistakable pill behind the title.
+  // Pill behind the title when the highlight param is set.
   titleHighlighted: {
     backgroundColor: 'rgba(99,102,241,0.35)',
     paddingHorizontal: 14,
