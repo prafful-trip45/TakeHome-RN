@@ -137,6 +137,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         },
       },
     ],
+    // Local plugin: adds tools:replace to the Firebase notification meta-data so
+    // the expo-notifications color/icon wins over @react-native-firebase/messaging's
+    // defaults (otherwise the Android manifest merger fails the release build).
+    './plugins/withFirebaseNotificationManifestFix',
   ],
   extra: {
     // Deployed admin panel base URL (Expo push trigger + version-config endpoint).

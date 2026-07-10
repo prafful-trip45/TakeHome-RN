@@ -13,7 +13,23 @@ import { buildScreenUrl, parseScreen } from './deeplinks';
 export function notificationResponseToUrl(
   response: Notifications.NotificationResponse | null,
 ): string | null {
-  const data = response?.notification.request.content.data;
+  return notificationDataToUrl(response?.notification.request.content.data);
+}
+
+/**
+ * Same URL resolution as {@link notificationResponseToUrl}, but for a
+ * notification *received* in the foreground (a `Notification`, not a tap
+ * `NotificationResponse`). Lets the in-app foreground banner replay a tap through
+ * the exact same `linking` pipeline. Returns null when there's no routable target.
+ */
+export function notificationToUrl(notification: Notifications.Notification): string | null {
+  return notificationDataToUrl(notification.request.content.data);
+}
+
+/** Shared core: resolve a notification `content.data` bag to a deep-link URL. */
+function notificationDataToUrl(
+  data: Notifications.NotificationContent['data'] | undefined,
+): string | null {
   if (!data) return null;
 
   if (typeof data.url === 'string' && data.url.length > 0) return data.url;
