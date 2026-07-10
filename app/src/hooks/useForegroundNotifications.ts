@@ -1,48 +1,56 @@
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
-import * as Notifications from 'expo-notifications';
-import { notificationToUrl } from '../navigation/notificationLinking';
+import { getMessaging, onMessage } from '@react-native-firebase/messaging';
+import { extractExpoData } from '../navigation/fcmPayload';
+import { notificationDataToUrl } from '../navigation/notificationLinking';
 import { useAppStore } from '../store/useAppStore';
 import { logger } from '../utils/logger';
 
 /**
- * Mount once at root. Registers the foreground *received* listener that the tap
- * pipeline (linkingConfig.ts) intentionally does not: on Android the OS does not
- * render a heads-up banner over our own foregrounded app, so a push that lands
- * while the app is open would otherwise be invisible until the user backgrounds
- * the app. We surface it as an in-app banner (ForegroundNotificationBanner) fed
- * from the store.
+ * Mount once at root. Presents an in-app banner for pushes that arrive while the
+ * app is FOREGROUNDED.
  *
- * Tap routing still lives solely in linkingConfig.ts — here we only pre-resolve
- * the deep-link URL (notificationToUrl) so the banner can replay it through the
- * same `linking` resolver. No navigation happens in this hook.
+ * Critical detail — why this uses @react-native-firebase/messaging and not
+ * expo-notifications: this app has RN-Firebase installed, and its native
+ * FirebaseMessagingService (priority 0) outranks expo-notifications'
+ * ExpoFirebaseMessagingService (priority -1) for the FCM MESSAGING_EVENT intent.
+ * Android delivers each message to exactly one service, so a foreground push goes
+ * to RN-Firebase's `onMessage(...)` — expo-notifications' addNotificationReceivedListener
+ * never fires. (Background/killed still works because the OS auto-renders the
+ * `notification` block into the tray.)
+ *
+ * We do NOT navigate here — tap routing stays in linkingConfig.ts. We only
+ * pre-resolve the deep-link URL so the banner can replay it through `linking`.
  */
 export function useForegroundNotifications(): void {
   useEffect(() => {
     if (Platform.OS === 'web') return;
 
     let counter = 0;
-    let sub: { remove: () => void } | undefined;
-    try {
-      sub = Notifications.addNotificationReceivedListener((notification) => {
-        const { title, body, data } = notification.request.content;
-        const url = notificationToUrl(notification);
-        // Unique, monotonic id so an identical re-send still re-triggers the banner
-        // (the store setter with a fresh id is a state change even if text repeats).
-        const id = `${notification.request.identifier}:${(counter += 1)}`;
-        logger.debug('notifications', 'foreground notification received', { id, url });
+    // onMessage fires ONLY when the app is in the foreground (modular API).
+    const unsubscribe = onMessage(getMessaging(), (remoteMessage) => {
+      try {
+        const title = remoteMessage.notification?.title ?? null;
+        const body = remoteMessage.notification?.body ?? null;
+        const data = extractExpoData(remoteMessage.data);
+        const url = notificationDataToUrl(data);
+
+        // Unique, monotonic id so an identical re-send still re-triggers the banner.
+        const id = `${remoteMessage.messageId ?? 'msg'}:${(counter += 1)}`;
+        logger.debug('notifications', 'foreground FCM message', { id, url });
+
         useAppStore.getState().setForegroundNotification({
           id,
           title,
           body,
           url,
-          screen: data?.screen,
+          screen: data.screen,
         });
-      });
-    } catch (err) {
-      logger.warn('notifications', 'foreground listener registration failed', err);
-    }
+      } catch (err) {
+        logger.warn('notifications', 'foreground onMessage handling failed', err);
+      }
+    });
 
-    return () => sub?.remove();
+    return unsubscribe;
   }, []);
 }

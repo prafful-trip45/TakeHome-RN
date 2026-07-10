@@ -17,18 +17,13 @@ export function notificationResponseToUrl(
 }
 
 /**
- * Same URL resolution as {@link notificationResponseToUrl}, but for a
- * notification *received* in the foreground (a `Notification`, not a tap
- * `NotificationResponse`). Lets the in-app foreground banner replay a tap through
- * the exact same `linking` pipeline. Returns null when there's no routable target.
+ * Shared core: resolve a loosely-typed notification `data` bag to a deep-link URL.
+ * Exported so the FCM foreground path (@react-native-firebase/messaging's
+ * onMessage) can reuse the exact same resolution as the expo-notifications tap
+ * path, after normalizing the FCM payload (see extractExpoData).
  */
-export function notificationToUrl(notification: Notifications.Notification): string | null {
-  return notificationDataToUrl(notification.request.content.data);
-}
-
-/** Shared core: resolve a notification `content.data` bag to a deep-link URL. */
-function notificationDataToUrl(
-  data: Notifications.NotificationContent['data'] | undefined,
+export function notificationDataToUrl(
+  data: Record<string, unknown> | undefined | null,
 ): string | null {
   if (!data) return null;
 
