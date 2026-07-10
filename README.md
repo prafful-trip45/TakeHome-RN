@@ -95,6 +95,8 @@ for the full Vercel deploy guide — set **Root Directory = `admin`**).
   ```bash
   cd app
   eas build --profile preview -p android     # internal-distribution APK
+  OR
+  eas build --profile preview --platform android --local # create the preview APK locally
   ```
   Install the resulting `.apk` (`adb install` or the build QR). A **preview** build is
   required to test **OTA** (inert in debug) and clean unhandled-JS crash capture.
